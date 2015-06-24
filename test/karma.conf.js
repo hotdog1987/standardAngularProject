@@ -50,8 +50,8 @@ module.exports = function(config) {
       'bower_components/angular-datatables/dist/plugins/tabletools/angular-datatables.tabletools.js',
       'bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
       // endbower
-      "app/httpInterceptor/*.js",
-      "app/app.js",
+      "../app/common/scripts/httpInterceptor/*.js",
+      "../app/common/scripts/app.js",
       "app/**/scripts/**/*.js",
       "test/spec/**/*.js"
     ],

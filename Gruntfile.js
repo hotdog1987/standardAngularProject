@@ -37,7 +37,7 @@ module.exports = function (grunt) {
         files: ['<%= yeoman.app %>/httpInterceptor/*.js','<%= yeoman.app %>/{,*/}scripts/*.js','<%= yeoman.app %>/app.js'],
         tasks: ['newer:jshint:all'],
         options: {
-          livereload: '<%= connect.options.livereload %>'
+          //livereload: '<%= connect.options.livereload %>'
         }
       },
       jsTest: {
@@ -45,28 +45,28 @@ module.exports = function (grunt) {
         tasks: ['newer:jshint:test', 'karma']
       },
       styles: {
-        files: ['<%= yeoman.app %>/styles/{,*/}*.css'],
-        tasks: ['newer:copy:styles', 'autoprefixer']
+        files: ['<%= yeoman.app %>/common/styles/*.scss'],
+        tasks: ['newer:sass', 'autoprefixer']
       },
       gruntfile: {
         files: ['Gruntfile.js']
       },
       livereload: {
         options: {
-          livereload: '<%= connect.options.livereload %>'
+          //livereload: '<%= connect.options.livereload %>'
         },
         files: [
           '<%= yeoman.app %>/{,*/}*.html',
           '<%= yeoman.app %>/{,*/}views/*.html',
           '.tmp/styles/{,*/}*.css',
-          '<%= yeoman.app %>/images/*.{png,jpg,jpeg,gif,webp,svg}'
+          '<%= yeoman.app %>/common/images/*.{png,jpg,jpeg,gif,webp,svg}'
         ]
       }
     },
 
     // The actual grunt server settings
     connect: {
-      options: {
+      /*options: {
         port: 9000,
         // Change this to '0.0.0.0' to access the server from outside.
         hostname: 'localhost',
@@ -90,7 +90,57 @@ module.exports = function (grunt) {
             ];
           }
         }
+      },*/
+      options: {
+        port: 8090,
+        hostname: 'localhost',
+        open: true,
+        middleware: function (connect) {
+          return [
+            require('grunt-connect-proxy/lib/utils').proxyRequest,
+            connect.static(require('path').resolve('.')),
+            connect.static('.tmp'),
+            connect().use(
+              '/bower_components',
+              connect.static('./bower_components')
+            ),
+            connect().use(
+              '/app/common/styles',
+              connect.static('./app/common/styles')
+            ),
+            connect.static(appConfig.app)
+          ];
+        }
       },
+      runtime: {
+        options: {
+          middleware: function (connect) {
+            return [
+              require('grunt-connect-proxy/lib/utils').proxyRequest,
+              connect.static(require('path').resolve('instrumented')),
+              connect.static(require('path').resolve('.'))
+            ];
+          }
+        }
+      },
+      proxies: [
+        {
+          context: '/ui',
+          host: 'localhost',
+          port: '8090',
+          rewrite: {
+            '^/ui': '/ui'
+          }
+        },
+        {
+          context: '/hub',
+          host: '<%=pkwillsHost%>',
+          port: '<%=pkwillsPort%>',
+          rewrite: {
+            '^/hub': '/'
+          }
+        }
+      ],
       test: {
         options: {
           port: 9001,
@@ -164,7 +214,7 @@ module.exports = function (grunt) {
         files: [{
           expand: true,
           cwd: '.tmp/styles/',
-          src: '{,*/}*.css',
+          src: '{,*/}*.scss',
           dest: '.tmp/styles/'
         }]
       },
@@ -172,7 +222,7 @@ module.exports = function (grunt) {
         files: [{
           expand: true,
           cwd: '.tmp/styles/',
-          src: '{,*/}*.css',
+          src: '{,*/}*.scss',
           dest: '.tmp/styles/'
         }]
       }
@@ -207,9 +257,9 @@ module.exports = function (grunt) {
       dist: {
         src: [
           '<%= yeoman.dist %>/scripts/{,*/}*.js',
-          '<%= yeoman.dist %>/styles/{,*/}*.css',
-          '<%= yeoman.dist %>/styles/fonts/*',
-          '!<%= yeoman.dist %>/images/*.{png,jpg,jpeg,gif,webp,svg}'
+          '<%= yeoman.dist %>/common/styles/{,*/}*.css',
+          '<%= yeoman.dist %>/common/fonts/*',
+          '!<%= yeoman.dist %>/common/images/*.{png,jpg,jpeg,gif,webp,svg}'
         ]
       }
     },
@@ -236,12 +286,12 @@ module.exports = function (grunt) {
     // Performs rewrites based on filerev and the useminPrepare configuration
     usemin: {
       html: ['<%= yeoman.dist %>/{,*/}*.html'],
-      css: ['<%= yeoman.dist %>/styles/{,*/}*.css'],
+      css: ['<%= yeoman.dist %>/common/styles/{,*/}*.css'],
       options: {
         assetsDirs: [
           '<%= yeoman.dist %>',
-          '<%= yeoman.dist %>/images',
-          '<%= yeoman.dist %>/styles'
+          '<%= yeoman.dist %>/common/images',
+          '<%= yeoman.dist %>/common/styles'
         ]
       }
     },
@@ -274,7 +324,7 @@ module.exports = function (grunt) {
     cssmin: {
        dist: {
          files: {
-           '<%= yeoman.dist %>/styles/main.css': [
+           '<%= yeoman.dist %>/common/styles/pw.css': [
              '.tmp/styles/{,*/}*.css'
            ]
          }
@@ -284,9 +334,9 @@ module.exports = function (grunt) {
       dist: {
         files: [{
           expand: true,
-          cwd: '<%= yeoman.app %>/images',
+          cwd: '<%= yeoman.app %>/common/images',
           src: '*.{png,jpg,jpeg,gif}',
-          dest: '<%= yeoman.dist %>/images'
+          dest: '<%= yeoman.dist %>/common/images'
         }]
       }
     },
@@ -295,9 +345,9 @@ module.exports = function (grunt) {
       dist: {
         files: [{
           expand: true,
-          cwd: '<%= yeoman.app %>/images',
+          cwd: '<%= yeoman.app %>/common/images',
           src: '*.svg',
-          dest: '<%= yeoman.dist %>/images'
+          dest: '<%= yeoman.dist %>/common/images'
         }]
       }
     },
@@ -340,6 +390,7 @@ module.exports = function (grunt) {
       }
     },
 
+
     // Copies remaining files to places other tasks can use
     copy: {
       dist: {
@@ -353,39 +404,44 @@ module.exports = function (grunt) {
             '.htaccess',
             '*.html',
             '{,*/}views/{,*/}*.html',
-            '{,*/}images/{,*/}*.{webp}',
-            'styles/fonts/{,*/}*.*'
+            '{,*/}common/{,*/}images/{,*/}*.{webp}',
+            '{,*/}common/{,*/}fonts/{,*/}*.*',
+            'bower_components/bootstrap/fonts/*.*'
           ]
         }, {
           expand: true,
           cwd: '.tmp/images',
-          dest: '<%= yeoman.dist %>/images',
+          dest: '<%= yeoman.dist %>/common/images',
           src: ['generated/*']
         }, {
           expand: true,
           cwd: 'bower_components/bootstrap/dist',
           src: 'fonts/*',
-          dest: '<%= yeoman.dist %>'
+          dest: '<%= yeoman.dist %>/common'
         }]
-      },
-      styles: {
-        expand: true,
-        cwd: '<%= yeoman.app %>/styles',
-        dest: '.tmp/styles/',
-        src: '{,*/}*.css'
       }
     },
-
+    sass:{
+      dist:{
+        options:{
+          style: 'expanded'
+        },
+        files: {
+          '.tmp/styles/pw.css': '<%= yeoman.app %>/common/styles/*.scss',
+          '<%= yeoman.app %>/common/styles/pw.css': '<%= yeoman.app %>/common/styles/*.scss'
+        }
+      }
+    },
     // Run some tasks in parallel to speed up the build process
     concurrent: {
       server: [
-        'copy:styles'
+        'sass'
       ],
       test: [
-        'copy:styles'
+        'sass'
       ],
       dist: [
-        'copy:styles',
+        'sass',
         'imagemin',
         'svgmin'
       ]
@@ -401,19 +457,52 @@ module.exports = function (grunt) {
   });
 
 
-  grunt.registerTask('serve', 'Compile then start a connect web server', function (target) {
-    if (target === 'dist') {
-      return grunt.task.run(['build', 'connect:dist:keepalive']);
-    }
+  grunt.registerTask('serve', 'Compile then start a connect web server',
+    /*function (target) {
+      if (target === 'dist') {
+        return grunt.task.run(['build', 'connect:dist:keepalive']);
+      }
 
-    grunt.task.run([
-      'clean:server',
-      'wiredep',
-      'concurrent:server',
-      'autoprefixer:server',
-      'connect:livereload',
-      'watch'
-    ]);
+      grunt.task.run([
+        'clean:server',
+        'wiredep',
+        'concurrent:server',
+        'autoprefixer:server',
+        'configureProxies',
+        'connect:proxies',
+        'connect:livereload',
+        'watch'
+      ]);
+      */
+    function (host, port) {
+
+      var pkwillsHost;
+      var pkwillsPort;
+
+      grunt.verbose.writeln('perkins+will Hub host or mock: ' + host);
+      grunt.verbose.writeln('perkins+will Hub port: ' + port);
+
+      if (host && port) {
+        pkwillsHost = host;
+        pkwillsPort = port;
+      } else {
+        pkwillsHost = 'pwc01web-dev';
+        pkwillsPort = 3435;
+      }
+
+      grunt.config.set('pkwillsHost', pkwillsHost);
+      grunt.config.set('pkwillsPort', pkwillsPort);
+
+      grunt.task.run([
+        'clean:server',
+        'wiredep',
+        'concurrent:server',
+        'autoprefixer:server',
+        'configureProxies',
+        'connect:proxies',
+        //'connect:livereload',
+        'watch'
+      ]);
   });
 
   grunt.registerTask('server', 'DEPRECATED TASK. Use the "serve" task instead', function (target) {
@@ -438,6 +527,7 @@ module.exports = function (grunt) {
     'autoprefixer',
     'concat',
     'ngAnnotate',
+    'sass',
     'copy:dist',
     'cdnify',
     'cssmin',

@@ -6,7 +6,7 @@ function AppConfig($i18nextProvider,$stateProvider,$urlRouterProvider){
   // Now set up the states
   $stateProvider
     .state('abstract',{
-      templateUrl: 'abstract.html'
+      templateUrl: 'common/views/abstract.html'
     })
     .state('abstract.home',{
       url:'/',
@@ -28,7 +28,7 @@ function AppConfig($i18nextProvider,$stateProvider,$urlRouterProvider){
     useCookie: false,
     useLocalStorage: false,
     fallbackLng: 'en',
-    resGetPath: '../locales/__lng__/__ns__.json',
+    resGetPath: 'common/locales/__lng__/__ns__.json',
     defaultLoadingValue: '' // ng-i18next option, *NOT* directly supported by i18next
   };
 }

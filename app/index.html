@@ -6,13 +6,14 @@
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width">
     <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
-    <!-- build:css(.) styles/vendor.css -->
+    <!-- build:css(.) common/styles/vendor.css -->
     <!-- bower:css -->
     <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
     <!-- endbower -->
     <!-- endbuild -->
 
-    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="common/styles/pw.css">
+    <!--<link rel="stylesheet" href="../.tmp/styles/pw.css">-->
   </head>
   <body ng-app="hubangularApp">
     <!--[if lt IE 7]>
@@ -91,9 +92,9 @@
     <!-- endbuild -->
 
     <!-- build:js({.tmp,app}) scripts/scripts.js -->
-    <script src="httpInterceptor/httpInterceptor.js"></script>
-    <script src="httpInterceptor/toggleError.js"></script>
-    <script src="httpInterceptor/toggleSuccess.js"></script>
+    <script src="common/scripts/httpInterceptor/httpInterceptor.js"></script>
+    <script src="common/scripts/httpInterceptor/toggleError.js"></script>
+    <script src="common/scripts/httpInterceptor/toggleSuccess.js"></script>
 
     <script src="app.js"></script>
 
